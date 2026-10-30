@@ -1,0 +1,29 @@
+{
+  "schema_note": "Synthetic internal normalized records. Not Vapi or GHL API request bodies; map fields in Make to current vendor contracts.",
+  "lead": {
+    "contact_id": "demo-contact-001",
+    "campaign_id": "demo-campaign",
+    "first_name": "Alex",
+    "email": "alex@example.com",
+    "timezone": "Europe/London",
+    "eligible_for_call": true,
+    "suppressed": false
+  },
+  "call_result": {
+    "call_id": "demo-call-001",
+    "contact_id": "demo-contact-001",
+    "connection_status": "connected",
+    "business_outcome": "qualified",
+    "service_interest": "AI receptionist setup",
+    "qualification_summary": "Requested a discussion about handling inbound enquiries.",
+    "booking": {
+      "status": "confirmed",
+      "appointment_id": "demo-appointment-001",
+      "calendar_id": "demo-calendar",
+      "start": "2026-11-03T10:00:00+00:00",
+      "end": "2026-11-03T10:30:00+00:00",
+      "timezone": "Europe/London"
+    },
+    "next_action": "Attend scheduled meeting"
+  }
+}
