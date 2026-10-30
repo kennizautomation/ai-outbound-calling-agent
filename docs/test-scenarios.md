@@ -1,29 +1,32 @@
-# Acceptance test plan
+# Acceptance test plan — Olivia
 
-Status: **not executed against live platforms**. Use synthetic contacts and controlled test numbers. Record actual results and redacted evidence after configuration.
+These tests are **not recorded as passed**. Screenshots are configuration evidence only. Use controlled test contacts; do not publish health responses or personal details.
 
-| # | Scenario | Expected result |
+| # | Test | Acceptance criterion |
 | --- | --- | --- |
-| 1 | Eligible lead trigger | One Vapi call request; call ID linked to the GHL contact |
-| 2 | Duplicate lead trigger | No second call for the same reserved attempt |
-| 3 | Suppressed lead | Call skipped with a recorded reason |
-| 4 | Outside local calling window | No immediate call; deferred state recorded |
-| 5 | Invalid phone | Validation failure; no dispatch |
-| 6 | Interested lead | Answers stored accurately; no inferred qualification facts |
-| 7 | Confirmed available slot | One GHL appointment; confirmation spoken only after success |
-| 8 | Slot taken before creation | No false confirmation; new availability offered |
-| 9 | Ambiguous booking timeout | Reconciliation before retry; no duplicate appointment |
-| 10 | Callback requested | Exact date/time/timezone saved with pending state |
-| 11 | Opt-out mid-call | Suppression persisted promptly and future dispatch blocked |
-| 12 | Wrong person | Polite ending and correction flag; no qualification invented |
-| 13 | No answer, busy, voicemail | Accurate connection status; no false booking or qualification |
-| 14 | Requested transfer fails | Callback offered; no completed-transfer claim |
-| 15 | Duplicate final event | No duplicate note, task, appointment, or opportunity |
-| 16 | CRM error after booking | Existing appointment retained; CRM update retried separately |
-| 17 | Unknown or forged tool request | Rejected without CRM or calendar mutation |
-| 18 | Callback becomes suppressed | Scheduled retry skipped |
-| 19 | Daylight-saving boundary | Correct local time, offset, and calendar slot |
-| 20 | Call dispatch timeout | Uncertain attempt reconciled before another request |
+| 1 | GHL tag trigger | Correct contact reaches drip action and outbound webhook |
+| 2 | GHL webhook to Vapi | One intended call is created and associated with the contact |
+| 3 | Repeated trigger | No unintended duplicate call |
+| 4 | GHL analysis webhook | Correct call/contact mapping and intended contact action |
+| 5 | Direct booking request | Qualification questions bypassed; ZIP handling follows the approved rule |
+| 6 | Qualification path | Questions follow approved order without repeated answers |
+| 7 | Budget exactly $20 | Explicit approved branch exists |
+| 8 | Availability tool | Exact KappointmentAvailability name; next ten days requested |
+| 9 | Requested slot exists | Actual returned slot offered and confirmed |
+| 10 | Requested slot unavailable | Up to three actual closest alternatives; no invented availability |
+| 11 | No slots | Clear unavailable result and approved next action |
+| 12 | Booking tool | Exact KAppointment_booking name; confirmed selection passed |
+| 13 | Booking succeeds | One GHL appointment; success spoken only after confirmation |
+| 14 | Booking fails or times out | No false success; uncertain creation reconciled before retry |
+| 15 | Three confirmed failures | Approved transfer offer; no automatic transfer |
+| 16 | Advisor request | Clear immediate-transfer agreement and verified transferCall attachment |
+| 17 | Transfer completes | No false appointment confirmation afterward |
+| 18 | Transfer unavailable | Accurate fallback without an invented booking |
+| 19 | Date/time handling | Month, day, and time spoken without year; timezone correct internally |
+| 20 | ZIP handling | Approved resolution of ask-once versus confirmation conflict is followed |
+| 21 | Wrong person or no-request objection | Approved truthful response; no fabricated referral source |
+| 22 | Do-not-call request | GHL suppression behavior verified before any subsequent dispatch |
+| 23 | One-question rule | Objection handling and height/weight obey approved turn-taking |
+| 24 | Correlated evidence | GHL contact, Vapi call, Make execution, and GHL appointment linked privately |
 
-## Evidence record
-For each test capture: date, configuration version, synthetic contact ID, call ID where available, expected result, observed result, pass/fail, and redacted evidence link. Do not mark a test passed from the expected result alone.
+Record expected result, actual result, date, configuration version, and redacted evidence per test. Do not infer test success from Published, Active, enrollment counts, or unrelated appointment rows.

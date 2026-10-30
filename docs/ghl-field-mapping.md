@@ -1,30 +1,25 @@
-# Suggested GHL field mapping
+# GHL data mapping — supplied variables and proposed checks
 
-These are logical names. Create or map fields in the actual GHL location and store their real IDs privately. The names below are not built-in API property names.
+The owner's source prompt provides these variable names. Actual GHL custom-field IDs and webhook mappings were not included.
 
-| Logical value | Suggested destination | Rule |
-| --- | --- | --- |
-| contact_id | Existing contact ID | Primary association; do not match by name alone |
-| call_id | Call note or custom field | Preserve call history; a latest-call field alone is insufficient |
-| campaign_id | Custom field or tag | Identify the approved campaign |
-| connection_status | Custom field | queued, connected, no_answer, busy, voicemail, failed |
-| business_outcome | Custom field | qualified, not_qualified, not_interested, callback_requested, opt_out, unknown |
-| service_interest | Custom field | Actual stated interest |
-| qualification_summary | Contact note | Factual concise summary |
-| preferred_timeline | Custom field | Preserve uncertainty |
-| appointment_id | Appointment reference | Present only after confirmed creation |
-| callback_at | Custom datetime or task | Include timezone and pending/completed state |
-| suppression | Appropriate DND/suppression controls | Map to the relevant channel controls and campaign exclusion |
-| next_action | Task or workflow state | Explicit owner and due time when applicable |
+| Prompt variable | Meaning |
+| --- | --- |
+| {{client_name}} | Contact display name |
+| {{phone_number}} | Contact phone |
+| {{address}} | Contact address |
+| {{email}} | Contact email |
+| {{Contact_ID}} | GHL contact reference |
+| {{current_time}} | Current/local time supplied to the agent |
+| {{timezone}} | Timezone |
+| {{timeoffset}} | Time offset |
+| {{allslot}} | Ten-day availability data |
 
-## Example opportunity stages
-New Lead → Contact Attempted → Qualified → Appointment Booked.
-Callback Requested and Not Interested can be separate stages if the business uses them.
+The Vapi booking-tool screenshot visibly includes LastName, Timezone, datetime, and FirstName fields. It is only a partial schema; other inputs must not be inferred as configured.
 
-Map by configured stage IDs, not display text. Keep the relationship between the contact and intended opportunity explicit; do not overwrite unrelated deals. Do not create duplicate opportunities for repeated call events.
+## Qualification information in the supplied script
+Existing coverage, desired monthly payment and explanation, family motivation, an emotional descriptor, smoking status, health-history response, height, weight, and ZIP code.
 
-## Booking ownership
-GHL Calendar is the appointment source of truth. Confirmed appointment details should include calendar ID, contact ID, appointment ID, start/end time, and timezone. A CRM tag such as "booked" is not proof of an appointment.
+These are question topics, not verified GHL field mappings. No real answers are published. Treat any collected health responses as restricted information and keep them out of public examples.
 
-## Suppression
-Persist opt-out immediately. Check current suppression before every dispatch, retry, or callback. A failed suppression write requires urgent manual review and a local block on further dispatch.
+## Recommended integration checks
+Confirm how the GHL analysis webhook associates a call with a contact, what the Create contact action does for an existing contact, and which fields are updated. Keep actual appointment IDs separate from an intent to book. Do not claim opportunity/pipeline updates until their configuration is supplied.

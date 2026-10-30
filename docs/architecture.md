@@ -1,39 +1,38 @@
-# Architecture and call lifecycle
+# Actual system architecture
 
-## Ownership
-GHL owns contact, opportunity, suppression, and appointment records. Vapi owns the call session. Make coordinates them and retains a durable processing ledger.
+Updated from the owner's clarification and eight supplied screenshots.
 
-## Lifecycle
-1. Receive a lead identifier and campaign identifier from a selected GHL trigger.
-2. Fetch current contact data. Check calling permission, suppression, valid phone, local calling window, attempt limit, and whether a call is already pending.
-3. Reserve a unique attempt in a durable ledger before requesting a Vapi call. Use a campaign/contact/attempt identifier. Store the returned call ID.
-4. Handle real-time tools separately from post-call processing.
-5. Reconcile final call events using the call ID. Store outcomes without reverting confirmed booking or opt-out state.
+## Responsibility map
+| Platform | Role in this project |
+| --- | --- |
+| GHL workflows | Outbound call initiation and call-analysis handling |
+| Vapi | Olivia's conversation, qualification, appointment-tool requests, and advisor transfer |
+| Make.com | Appointment availability checking and appointment booking |
+| GHL Calendar | Calendar availability and appointment records |
 
-## Proposed application tools
-These are project-defined names, not claims about existing configured tools.
+## Outbound path
+The supplied GHL workflow shows **Contact Tag → Drip mode → Custom webhook**. The owner identifies this as the Vapi outbound-call workflow. The webhook URL, headers, body, and precise batching settings are not visible, so this repository does not invent them.
 
-| Tool | Required input | Result |
-| --- | --- | --- |
-| check_availability | Calendar ID resolved server-side, date range, IANA timezone | Available slots with explicit offsets |
-| book_appointment | Contact ID, selected slot, caller confirmation, booking key | Confirmed appointment ID or explicit failure |
-| schedule_callback | Contact ID, desired time, timezone | Persisted callback ID or failure |
-| record_opt_out | Contact ID, call ID | Persisted suppression status |
+## Call-analysis path
+The supplied GHL “Vapi Agent Call Analysis” workflow shows **Inbound Webhook → Create contact**. The owner confirms call-analysis handling is in GHL. The screenshot does not expose the webhook payload, analysis generation, field mapping, or contact deduplication behavior. No Make post-call scenario is claimed.
 
-Use Vapi's configured transfer capability for live transfers. Define the destination and availability rules in the actual assistant setup.
+## Appointment tools
+- `KappointmentAvailability`: Olivia requests the next ten days of slots through the Make checking scenario.
+- `KAppointment_booking`: Olivia submits the selected, confirmed time through the Make booking scenario.
+- `transferCall`: advisor transfer as specified in the supplied prompt; destination redacted.
 
-## Time handling
-Resolve the prospect's timezone before offering times. Keep timezone and offset data in storage; use readable 12-hour times in speech. Recheck availability before creation. Never bypass slot validation to force an appointment. Confirm success only after GHL returns a successful appointment result.
+These names are case-sensitive. See [prompt review](prompt-review.md) for the transfer-name discrepancy visible in the tool list.
 
-## Reliability
-- Authenticate inbound requests using mechanisms supported by the chosen integration; validate expected event types and call/contact associations.
-- Scope tool requests to the configured account and calendar; never trust arbitrary caller-provided account IDs.
-- Deduplicate post-call events by call ID and event identity. Track processing state and retries.
-- Use an atomic reservation or serialized queue for call dispatch. A search followed by a write is not a concurrency lock.
-- Treat timeouts on call or appointment creation as uncertain outcomes. Reconcile against provider records before retrying.
-- Persist booking success before later CRM notes or notifications. Retry those downstream steps without creating another booking.
-- Keep opt-out processing independent of final-summary delivery.
-- Record API errors and alert the owner when retries are exhausted.
+## Checking scenario
+**Custom webhook → OpenAI completion → HTTP availability lookup → Make Code → Webhook response.**
+The screenshot shows the module order and a GHL free-slots path. The calendar ID has been redacted. The OpenAI prompt and Make Code source are not visible; their exact transformations are not asserted.
 
-## Outcomes
-Keep connection status, business outcome, and booking status separate. A connected call is not automatically a qualified lead. No answer, voicemail, busy, and failed are connection results; callback requested, not interested, qualified, and opt-out are business outcomes. Booking status is confirmed only when an appointment ID exists.
+## Booking scenario
+**Custom webhook → HTTP (legacy) → Router → Booked / Not Booked webhook responses.**
+The screenshot labels the request POST /v1/appointments. This is documented as observed, not recommended as a current API endpoint. The full URL, API version, authentication, and branch filters are not visible. A 200 response label on the module is not proof that a booking executed successfully.
+
+## Evidence limits
+Screenshots demonstrate configuration views and calendar entries. They do not provide a correlated lead → call ID → booking ID execution trace. Published/Active UI states are recorded as shown, not treated as end-to-end test results.
+
+## Recommended validation, not established implementation
+Check suppression and calling windows in the GHL dispatch path; prevent duplicate dispatch; validate webhook associations; reconcile uncertain booking results; preserve timezone data; and map call outcomes to the correct contact. None of those hidden settings can be verified from these screenshots alone.

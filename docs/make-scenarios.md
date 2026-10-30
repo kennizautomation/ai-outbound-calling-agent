@@ -1,48 +1,44 @@
-# Make.com scenario build plan
+# Make.com — appointment checking and booking
 
-These are configuration instructions, not an importable blueprint. Use supported native modules where suitable, or Make HTTP modules with the current vendor API contracts. Connections and account identifiers must be configured privately.
+Make handles appointment tools in this project. Outbound call initiation and call analysis belong to GHL.
 
-## Scenario A: eligible lead to outbound call
-1. Custom webhook or approved GHL trigger receives contact and campaign identifiers.
-2. Retrieve the current GHL contact and relevant opportunity.
-3. Filter out suppressed, ineligible, invalid-phone, outside-window, or attempt-limited leads.
-4. Reserve the attempt using a serialized dispatch process or durable atomic mechanism.
-5. Submit a Vapi outbound call request using the configured assistant and phone number.
-6. Store the returned call ID alongside the GHL contact and attempt ID.
-7. Mark dispatch status; route failures to reconciliation or manual review.
+## Scenario 1: appointment checking
+![Make appointment availability](../assets/05-make-availability.png)
 
-Do not retry ambiguous call-creation timeouts blindly. A successful submission also does not prove the prospect answered.
+Observed modules:
+1. Custom webhook.
+2. OpenAI — Generate a completion.
+3. HTTP — Get Available slot.
+4. Make Code — Run code.
+5. Webhook response.
 
-## Scenario B: real-time tool requests
-1. Receive and validate the Vapi tool request.
-2. Route by the configured tool name.
-3. Resolve trusted contact, account, and calendar IDs from the call association.
-4. Execute availability lookup, booking, callback persistence, or suppression.
-5. Return the required Vapi tool response, preserving the original tool-call identifier.
+Agent function: `KappointmentAvailability`.
+Prompt intent: retrieve the next ten days, match the requested time, and offer three closest alternatives when unavailable.
 
-Configure Make's Webhook Response module to return the actual tool result. A generic webhook acknowledgement is not an availability or booking result. Keep this path short enough for the configured Vapi timeout; move nonessential notifications to a separate path.
+The calendar identifier is redacted. The OpenAI instructions, date calculations, HTTP configuration, code, and response schema are not supplied. Do not infer those details from module names.
 
-For booking, use a stable booking request key. Resolve an uncertain result before creating another appointment. For callbacks, save the requested time and a durable pending status. Any later scheduler must recheck suppression and the allowed calling window before dispatch.
+## Scenario 2: appointment booking
+![Make appointment booking](../assets/04-make-booking.png)
 
-## Scenario C: post-call synchronization
-1. Receive the configured final call event.
-2. Validate its association and deduplicate by call/event identity.
-3. Normalize connection status, qualification fields, business outcome, and summary.
-4. Update the matching GHL contact and intended opportunity.
-5. Save a concise note and next action; notify the owner when configured.
-6. Mark processing complete only after required updates succeed.
+Observed modules:
+1. Custom webhook.
+2. HTTP (legacy), labeled POST /v1/appointments.
+3. Router.
+4. “Booked” webhook response route.
+5. “Not Booked” fallback webhook response route.
 
-Apply monotonic state rules: final processing must not clear suppression, erase a confirmed appointment, or downgrade a manually completed follow-up.
+Agent function: `KAppointment_booking`.
+Prompt intent: create the appointment after the caller confirms a returned slot.
 
-## Error paths
-| Failure | Handling |
-| --- | --- |
-| Authentication error | Stop the affected route and alert the owner |
-| Rate limiting | Respect provider retry guidance and use bounded retry |
-| Create-request timeout | Mark uncertain and reconcile |
-| Invalid input | Record validation failure; do not dispatch |
-| CRM update fails after booking | Retry CRM update using the existing appointment ID |
-| Duplicate event | Return acknowledgement without repeating side effects |
+This is an observed configuration, not an importable blueprint or a validated API recipe. Branch filters and full HTTP settings remain private/unverified.
 
-## Make settings to validate
-Webhook concurrency, scenario processing order, incomplete executions, error handlers, request timeouts, and log retention all need explicit configuration. Sequential processing in one scenario does not coordinate separate scenarios or external workers.
+## Validation tasks
+- Confirm both attached Vapi tools reach the intended Make webhooks.
+- Check required parameters and response format against the actual tool schema.
+- Verify timezone conversion and the next-ten-days range.
+- Test empty availability and fewer than three slots.
+- Check that “Booked” requires actual appointment success.
+- Reconcile timeouts before resubmission; avoid duplicate appointments.
+- Distinguish HTTP acknowledgement from booking confirmation.
+
+No Make outbound-dispatch, call-analysis, callback, or suppression scenario is asserted here.

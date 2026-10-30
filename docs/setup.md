@@ -1,35 +1,31 @@
-# Setup and implementation checklist
+# Configuration and verification guide
 
-## Required private configuration
-- Vapi assistant, connected calling number, configured tools, and server credentials.
-- Make scenarios and private connections.
-- GHL location, calendar, pipeline, stage, and custom-field IDs.
-- Approved campaign purpose, lead eligibility, calling windows, timezone rules, attempt limits, transfer destination, and callback policy.
+## Project-specific ownership
+- **GHL:** outbound trigger/drip/webhook workflow and call-analysis webhook workflow.
+- **Vapi:** Olivia assistant and exact configured appointment/transfer tools.
+- **Make.com:** appointment checking and booking.
+- **GHL Calendar:** availability and appointment storage.
 
-Do not commit credentials, webhook secrets, private phone numbers, contact exports, or unredacted recordings.
+## Supplied evidence
+Eight screenshots and the owner-provided Olivia prompt. The screenshots are included as redacted configuration evidence; there is no importable Make blueprint or complete Vapi assistant export.
 
-## Implementation order
-1. Configure a test GHL contact, pipeline mapping, and calendar.
-2. Build availability and booking tool handling in Make.
-3. Connect the tools to a test Vapi assistant using the example prompt.
-4. Build call dispatch with eligibility and duplicate protection.
-5. Build post-call synchronization and callback persistence.
-6. Execute the acceptance test matrix using controlled test contacts.
-7. Add redacted screenshots and actual test outcomes to the repository.
+## Private values
+Keep transfer numbers, contact identifiers, calendar IDs, account/location IDs, webhook URLs, credentials, real contact records, and health responses out of this public repository. The sanitized prompt uses [BUSINESS_NAME], [DEPARTMENT_NAME], and [ADVISOR_TRANSFER_NUMBER].
 
-The configured campaign must meet the business's applicable permission and calling requirements. This repository does not establish those requirements or authorize calls.
+## Verify the actual setup
+1. Inspect GHL's tag trigger, drip configuration, and outbound webhook privately.
+2. Confirm Vapi assistant selection and exact callable names.
+3. Inspect Make checking parameters, OpenAI completion instructions, HTTP settings, code, and response.
+4. Inspect Make booking request and router filters.
+5. Inspect GHL call-analysis payload and contact mapping.
+6. Resolve [prompt conflicts](prompt-review.md) with the business owner.
+7. Run the [test matrix](test-scenarios.md) and capture correlated evidence.
 
-## Evidence still needed
-Actual Make blueprint, redacted Vapi configuration, GHL field mappings, platform test results, and any authorized demo recording. Add only artifacts matching the implemented system.
-
-## Official technical references
-Reviewed as design references on 2026-10-30. Verify current request fields and authentication while implementing.
+## Official reference links
+These are implementation references, not proof that hidden settings match current API contracts.
 - [Vapi server events](https://docs.vapi.ai/server-url/events)
 - [Vapi tools](https://docs.vapi.ai/tools)
 - [Make webhooks](https://help.make.com/webhooks)
-- [Make scenario settings](https://help.make.com/scenario-settings)
-- [GHL free slots](https://marketplace.gohighlevel.com/docs/ghl/calendars/get-slots/index.html)
 - [GHL calendar events](https://marketplace.gohighlevel.com/docs/ghl/calendars/calendar-events/)
 
-## Validation scope
-This repository contains documentation and internal synthetic examples. It does not include executable integration code, verified API credentials, or an importable automation. Publishing these files does not configure the platforms or place calls.
+Publishing this repository changes portfolio files only. It does not modify GHL, Make.com, or Vapi production settings or place calls.
